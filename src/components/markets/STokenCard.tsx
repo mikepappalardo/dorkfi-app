@@ -6,6 +6,8 @@ import DorkFiButton from "@/components/ui/DorkFiButton";
 import APYDisplay from "@/components/APYDisplay";
 import BorrowAPYDisplay from "@/components/BorrowAPYDisplay";
 import { useNumberI18n } from "@/contexts/LocaleSettingsContext";
+import { useNetwork } from "@/contexts/NetworkContext";
+import { getNetworkConfig } from "@/config";
 
 interface STokenCardProps {
   market: OnDemandMarketData;
@@ -25,6 +27,15 @@ const STokenCard = ({
   onMintClick
 }: STokenCardProps) => {
   const { formatCurrency, formatPercent } = useNumberI18n();
+  const { currentNetwork } = useNetwork();
+  const networkConfig = getNetworkConfig(currentNetwork);
+  const lendingPools = networkConfig?.contracts?.lendingPools || [];
+  const poolId = market.marketInfo?.poolId || market.poolId;
+  let marketLabel: string | null = null;
+  if (poolId && lendingPools.length >= 2) {
+    if (String(poolId) === String(lendingPools[0])) marketLabel = "A";
+    else if (String(poolId) === String(lendingPools[1])) marketLabel = "B";
+  }
   return (
     <DorkFiCard
       key={market.asset}
@@ -34,7 +45,14 @@ const STokenCard = ({
       {/* Header with logo, asset info, and info button */}
       <div className="flex flex-col items-center text-center md:flex-col-reverse md:items-start md:text-left md:justify-normal">
         <div className="flex items-center gap-3 flex-1">
-          <img src={market.icon} alt={market.asset} className="w-10 h-10 md:w-8 md:h-8 rounded-full object-contain flex-shrink-0" />
+          <div className="relative flex-shrink-0">
+            <img src={market.icon} alt={market.asset} className="w-10 h-10 md:w-8 md:h-8 rounded-full object-contain" />
+            {marketLabel && (
+              <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${marketLabel === "A" ? "bg-blue-500 dark:bg-blue-600" : "bg-purple-500 dark:bg-purple-600"} border-2 border-white dark:border-slate-800 flex items-center justify-center`}>
+                <span className="text-xs font-bold text-white">{marketLabel}</span>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col items-center justify-center gap-1 text-center flex-1">
             <div className="font-semibold text-lg leading-tight">{market.asset}</div>
             <Badge variant="outline" className="text-xs px-2 py-0.5 h-4 flex items-center justify-center whitespace-nowrap">
