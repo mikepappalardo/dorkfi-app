@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, RefreshCw, ChevronDown } from "lucide-react";
+import { ExternalLink, RefreshCw } from "lucide-react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useNetwork } from "@/contexts/NetworkContext";
 import {
@@ -16,9 +16,7 @@ import {
   useOnDemandMarketData,
   SortField,
   SortOrder,
-  type MarketFilter,
 } from "@/hooks/useOnDemandMarketData";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MarketSearchFilters from "@/components/markets/MarketSearchFilters";
 import MarketPagination from "@/components/markets/MarketPagination";
 import SupplyBorrowModal from "@/components/SupplyBorrowModal";
@@ -44,26 +42,11 @@ import {
   isAlgorandCompatibleNetwork,
   isCurrentNetworkVOI,
   isCurrentNetworkAlgorand,
-  getNetworkConfig,
-  getEnabledNetworks,
-  type NetworkId,
 } from "@/config";
 import { APP_SPEC as LendingPoolAppSpec } from "@/clients/DorkFiLendingPoolClient";
 import BigNumber from "bignumber.js";
-import { updateTransactionMetadata } from "@/utils/transactionUtils";
-import { getNetworkLogoPath } from "@/utils/tokenImageUtils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { useNumberI18n } from "@/contexts/LocaleSettingsContext";
 
-const MAX_CLAIMS_PER_TX = 3;
-
-function normalizeMarketData(md: Record<string, unknown>) {
+function normalizeMarketData(md) {
   return {
     icon: md.icon || "",
     name: md.asset ?? md.name ?? "Unknown",
@@ -89,11 +72,9 @@ function normalizeMarketData(md: Record<string, unknown>) {
 }
 
 const MarketsTable = () => {
-  const { formatPercent } = useNumberI18n();
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<SortField>("default");
+  const [sortField, setSortField] = useState<SortField>("totalSupplyUSD");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [marketFilter, setMarketFilter] = useState<MarketFilter>("all");
   const [depositModal, setDepositModal] = useState({
     isOpen: false,
     asset: null,
@@ -148,14 +129,13 @@ const MarketsTable = () => {
 
   const { activeAccount, signTransactions, activeWallet } = useWallet();
 
-  const { currentNetwork, switchNetwork } = useNetwork();
-  const enabledNetworks = getEnabledNetworks();
+  const { currentNetwork } = useNetwork();
   const { toast } = useToast();
 
   // Helper function to get clients for reads using the active network
   const getSyncedClientsForReads = async () => {
     const algorandNetwork = getAlgorandNetworkFromNetworkId(
-      currentNetwork as NetworkId
+      currentNetwork as any
     );
     if (!algorandNetwork) {
       throw new Error(
@@ -169,7 +149,7 @@ const MarketsTable = () => {
   // Helper function to get clients for transactions using the active network
   const getSyncedClientsForTransactions = async () => {
     const algorandNetwork = getAlgorandNetworkFromNetworkId(
-      currentNetwork as NetworkId
+      currentNetwork as any
     );
     if (!algorandNetwork) {
       throw new Error(
@@ -204,194 +184,7 @@ const MarketsTable = () => {
       symbol: "VOI",
       decimals: 6,
     },
-    {
-      id: 2,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 4_038_386,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "57IUOX6D3JAAM3GSPVJPM4CTTOVUYWWWLHOIBGOS275ZC3Q4BUPA4M5R4U",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 3,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "7PVC6COR4DKNETI2KGSKBPNBN75SBRRRNO24ICWMM3P44MSNJ7EOANXCBY",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 4,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "46D6WQTKMO2TBMHE4VF45IGDLXMDG5DLTWIGVOEFSEKHSOLGDAF3GWURGI",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 5,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "UKFZDMWV6Q4PXBOO3LSIAFOGTV735JZNRUI6GGDTJQ57KHXBIISWIAHJBY",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 6,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "FN6OCDI4D55OK4JUZ7YAHISNBZWVEWDN6SOV23XAHYOTWPUE5OFCJQEVPE",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    }, {
-      id: 7,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "KUIS6IWPPJZ2Z64LBN2SITONOBJUY2D4RRSELH7CHIG2J6DWSUEHBFVWN4",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 8,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "NF7COSO5C6EJBRX4XO5C3JUKAYOLIV4T33HXKNFFJWY24MCX3FWEFKQZRM",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 9,
-      name: "Phase 1 Incentive",
-      description: "DorkFi Phase 1 Incentive",
-      reward: 807_677,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "YP3V5B2CBWIELNGGDKEH246QGJHWYKGPNXQC24OCDGD2KWCJYCJ3KTSMOU",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    },
-    {
-      id: 10,
-      name: "Phase 2 Incentive",
-      description: "DorkFi Phase 2 Incentive (Biweekly)",
-      reward: 948718,
-      icon: "/lovable-uploads/VOI.png",
-      airdropAccount:
-        "D3WNOHGGYDEPKD5D3GIADWD4TXWWMTLDNMHDXEHU5F6N6RH5ZJ3ZHBQTZQ",
-      tokenStandard: "network",
-      networks: {
-        "algorand-mainnet": {
-          contractId: "3210709899",
-          assetId: "2320775407",
-        },
-        "voi-mainnet": {
-          contractId: "41877720",
-        },
-      },
-      symbol: "VOI",
-      decimals: 6,
-    }
+    // add more rewards here
   ];
 
   const {
@@ -414,7 +207,6 @@ const MarketsTable = () => {
     sortOrder,
     pageSize: 10,
     autoLoad: true,
-    marketFilter,
   });
 
   const handleSearchTermChange = (value: string) => {
@@ -538,14 +330,13 @@ const MarketsTable = () => {
         );
         setUserGlobalData(globalData);
 
-        // Fetch user's current borrow balance for this specific asset (use poolId for 2 WAD markets etc.)
+        // Fetch user's current borrow balance for this specific asset
         const tokens = getAllTokensWithDisplayInfo(currentNetwork);
-        const token =
-          poolId != null && poolId !== ""
-            ? tokens.find(
-              (t) => t.symbol === asset && String(t.poolId) === String(poolId)
-            )
-            : tokens.find((t) => t.symbol === asset);
+        // If poolId is provided, find the token that matches both symbol and poolId
+        // Otherwise, fall back to finding by symbol only (for backward compatibility)
+        const token = poolId
+          ? tokens.find((t) => t.symbol === asset && t.poolId === poolId)
+          : tokens.find((t) => t.symbol === asset);
 
         if (token && token.poolId && token.underlyingContractId) {
           const borrowData = await fetchUserBorrowBalance(
@@ -596,7 +387,7 @@ const MarketsTable = () => {
 
       // Use originalSymbol to look up the config, as asset might be a display symbol
       const originalSymbol =
-        "originalSymbol" in token ? (token as { originalSymbol?: string }).originalSymbol : asset;
+        "originalSymbol" in token ? (token as any).originalSymbol : asset;
       const tokenConfig = getTokenConfig(currentNetwork, originalSymbol);
 
       if (!tokenConfig) {
@@ -646,7 +437,7 @@ const MarketsTable = () => {
       );
 
       if (!migrateResult.success) {
-        throw new Error((migrateResult as { error?: string }).error || "Migration failed");
+        throw new Error((migrateResult as any).error || "Migration failed");
       }
 
       // Sign and send migration transaction
@@ -744,10 +535,10 @@ const MarketsTable = () => {
           // Otherwise, fall back to finding by symbol only (for backward compatibility)
           const token = borrowModal.poolId
             ? tokens.find(
-              (t) =>
-                t.symbol === borrowModal.asset &&
-                t.poolId === borrowModal.poolId
-            )
+                (t) =>
+                  t.symbol === borrowModal.asset &&
+                  t.poolId === borrowModal.poolId
+              )
             : tokens.find((t) => t.symbol === borrowModal.asset);
 
           if (token && token.poolId && token.underlyingContractId) {
@@ -786,14 +577,7 @@ const MarketsTable = () => {
           setUserGlobalData(globalData);
 
           const tokens = getAllTokensWithDisplayInfo(currentNetwork);
-          // Use poolId when there are multiple markets for the same asset (e.g. 2 WAD markets)
-          const token = mintModal.poolId != null
-            ? tokens.find(
-              (t) =>
-                t.symbol === mintModal.asset &&
-                String(t.poolId) === String(mintModal.poolId)
-            )
-            : tokens.find((t) => t.symbol === mintModal.asset);
+          const token = tokens.find((t) => t.symbol === mintModal.asset);
 
           if (token && token.poolId && token.underlyingContractId) {
             const borrowData = await fetchUserBorrowBalance(
@@ -815,7 +599,6 @@ const MarketsTable = () => {
     activeAccount?.address,
     mintModal.isOpen,
     mintModal.asset,
-    mintModal.poolId,
     currentNetwork,
   ]);
 
@@ -833,11 +616,11 @@ const MarketsTable = () => {
     }
   };
 
-  const handleRowClick = (market: Record<string, unknown>) => {
+  const handleRowClick = (market: any) => {
     //setDetailModal({ isOpen: true, asset: market.asset, marketData: market });
   };
 
-  const handleInfoClick = (e: React.MouseEvent, market: Record<string, unknown>) => {
+  const handleInfoClick = (e: React.MouseEvent, market: any) => {
     e.stopPropagation();
     setDetailModal({ isOpen: true, asset: market.asset, marketData: market });
   };
@@ -968,29 +751,10 @@ const MarketsTable = () => {
   const formattedTotalClaimable =
     totalClaimableAmount > 0
       ? ARC200Service.formatBalance(
-        totalClaimableAmount.toString(),
-        rewardDecimals
-      )
+          totalClaimableAmount.toString(),
+          rewardDecimals
+        )
       : "0";
-
-  // For display/claim: limit to first 4 (matches MAX_CLAIMS_PER_TX)
-  const claimableRewardsThisBatch = Object.entries(claimableRewards).slice(
-    0,
-    MAX_CLAIMS_PER_TX
-  );
-  const totalClaimableThisBatch = claimableRewardsThisBatch.reduce(
-    (sum, [, r]) => sum + r.amount,
-    0
-  );
-  const formattedTotalThisBatch =
-    totalClaimableThisBatch > 0
-      ? ARC200Service.formatBalance(
-        totalClaimableThisBatch.toString(),
-        rewardDecimals
-      )
-      : "0";
-  const hasMoreRewardsToClaim =
-    Object.keys(claimableRewards).length > MAX_CLAIMS_PER_TX;
 
   // Get VOI token confiag to find poolId for deposit
   const getVOITokenConfig = () => {
@@ -1042,11 +806,11 @@ const MarketsTable = () => {
 
       const allTxns: Uint8Array[] = [];
 
-      // Process each claimable reward (limit to 4 at once)
-      let ci: InstanceType<typeof CONTRACT> | undefined;
-      const buildN: Record<string, unknown>[] = [];
-      let paymentAmount = 28500;
-      for (const [rewardId, rewardData] of Object.entries(claimableRewards).slice(0, MAX_CLAIMS_PER_TX)) {
+      // Process each claimable reward
+      let ci: any;
+      let customR: any;
+      let buildN: any[] = [];
+      for (const [rewardId, rewardData] of Object.entries(claimableRewards)) {
         if (rewardData.amount <= 0) continue;
 
         const reward = rewards.find((r) => r.id.toString() === rewardId);
@@ -1137,7 +901,7 @@ const MarketsTable = () => {
             ).obj;
             buildN.push({
               ...txnO,
-              payment: paymentAmount++,
+              payment: 28500,
               note: Uint8Array.from(
                 Buffer.from(
                   `dorkfi claim reward ${reward.id} transfer (amount: ${rewardData.formatted} ${reward.symbol})`
@@ -1153,10 +917,10 @@ const MarketsTable = () => {
               const txnW = (await builder.token.withdraw(allowance)).obj;
               const optinW = voiToken.underlyingAssetId
                 ? {
-                  xaid: Number(voiToken.underlyingAssetId),
-                  snd: activeAccount.address,
-                  arcv: activeAccount.address,
-                }
+                    xaid: Number(voiToken.underlyingAssetId),
+                    snd: activeAccount.address,
+                    arcv: activeAccount.address,
+                  }
                 : {};
               buildN.push({
                 ...txnW,
@@ -1173,8 +937,9 @@ const MarketsTable = () => {
           console.error(`Error claiming reward ${reward.id}:`, error);
           toast({
             title: "Claim Error",
-            description: `Failed to claim ${reward.name}: ${error instanceof Error ? error.message : "Unknown error"
-              }`,
+            description: `Failed to claim ${reward.name}: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`,
             variant: "destructive",
           });
           // Continue with other rewards even if one fails
@@ -1183,14 +948,13 @@ const MarketsTable = () => {
 
       console.log({ buildN });
 
-      if (!ci) throw new Error("No claimable rewards to process");
       ci.setFee(2000);
       ci.setEnableGroupResourceSharing(true);
       ci.setExtraTxns(buildN);
       if (currentNetwork === "algorand-mainnet") {
         ci.setBeaconId(3209233839);
       }
-      const customR = await ci.custom();
+      customR = await ci.custom();
 
       console.log({ customR });
 
@@ -1233,7 +997,7 @@ const MarketsTable = () => {
 
       // Store the claimed amount before clearing rewards (for success message)
       const claimedData = {
-        formatted: formattedTotalThisBatch,
+        formatted: formattedTotalClaimable,
         symbol: rewardSymbol,
         rewardNames, // Store reward names for sharing
       };
@@ -1241,7 +1005,7 @@ const MarketsTable = () => {
 
       toast({
         title: "Claim Successful",
-        description: `Successfully claimed ${formattedTotalThisBatch} ${rewardSymbol}`,
+        description: `Successfully claimed ${formattedTotalClaimable} ${rewardSymbol}`,
       });
 
       // Clear claimable rewards - the useEffect will refresh them automatically
@@ -1325,8 +1089,8 @@ const MarketsTable = () => {
         throw new Error("Token configuration invalid for deposit");
       }
 
-      // Convert claimable amount to atomic units for deposit (use batch total since we only claim first 3)
-      const depositAmount = totalClaimableThisBatch.toString();
+      // Convert claimable amount to atomic units for deposit
+      const depositAmount = totalClaimableAmount.toString();
       const bigAmount = BigInt(depositAmount);
 
       // Check if market is paused
@@ -1353,11 +1117,11 @@ const MarketsTable = () => {
       const networkConfig = getCurrentNetworkConfig();
 
       // Build claim transactions first
-      const claimBuildN: Record<string, unknown>[] = [];
+      let claimBuildN: any[] = [];
       let counter = 0;
 
-      // Build claim transactions for each reward (limit to 4 at once)
-      for (const [rewardId, rewardData] of Object.entries(claimableRewards).slice(0, MAX_CLAIMS_PER_TX)) {
+      // Build claim transactions for each reward
+      for (const [rewardId, rewardData] of Object.entries(claimableRewards)) {
         if (rewardData.amount <= 0) continue;
 
         const reward = rewards.find((r) => r.id.toString() === rewardId);
@@ -1437,8 +1201,9 @@ const MarketsTable = () => {
           console.error(`Error claiming reward ${reward.id}:`, error);
           toast({
             title: "Claim Error",
-            description: `Failed to claim ${reward.name}: ${error instanceof Error ? error.message : "Unknown error"
-              }`,
+            description: `Failed to claim ${reward.name}: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`,
             variant: "destructive",
           });
         }
@@ -1510,7 +1275,7 @@ const MarketsTable = () => {
       };
 
       // Try different payment combinations (same logic as deposit function)
-      let customTx: { success: boolean; txns?: string[] } = { success: false };
+      let customTx: any;
       for (const p of [
         [0, 0],
         [1, 0],
@@ -1553,7 +1318,7 @@ const MarketsTable = () => {
               Number(voiToken.underlyingContractId),
               bigAmount
             )
-          ).obj as Record<string, unknown>;
+          ).obj as any;
           depositBuildN.push({
             ...txnO,
             note: new TextEncoder().encode("lending deposit"),
@@ -1615,76 +1380,9 @@ const MarketsTable = () => {
         .do();
 
       // Wait for confirmation
-      await waitForConfirmation(algorandClients.algod, res.txid, 4);
-
-      // Decode transactions to find the pool transaction ID
-      const decodedStxns = signedTxns.map((txn: Uint8Array) => {
-        return algosdk.decodeSignedTransaction(txn);
-      });
-      type DecodedAppTxn = { txn: { type: string; applicationCall?: { appIndex: number }; txID(): string } };
-      const poolTxn = decodedStxns
-        .reverse()
-        .find(
-          (txn): txn is DecodedAppTxn =>
-            (txn as DecodedAppTxn).txn?.type === "appl" &&
-            typeof (txn as DecodedAppTxn).txn?.applicationCall?.appIndex === "number" &&
-            Number((txn as DecodedAppTxn).txn.applicationCall!.appIndex) === parseInt(voiToken.poolId || "")
-        );
-      const poolTxnID = poolTxn?.txn?.txID?.();
-      if (poolTxnID) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        // Retry until metadata update succeeds
-        let metadataUpdated = false;
-        let retryCount = 0;
-        const maxRetries = 10;
-        const apiBaseUrl =
-          import.meta.env.VITE_DORKFI_API_URL ||
-          "https://dorkfi-api.nautilus.sh";
-        const networkParam = currentNetwork ? `?network=${currentNetwork}` : "";
-
-        while (!metadataUpdated && retryCount < maxRetries) {
-          try {
-            const response = await fetch(
-              `${apiBaseUrl}/transaction-metadata/${poolTxnID}${networkParam}`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-
-            if (response.ok) {
-              const result = await response.json();
-              console.log(
-                "Transaction metadata successfully updated:",
-                result.data
-              );
-              metadataUpdated = true;
-            } else {
-              const error = await response.json();
-              throw new Error(
-                error.error || "Failed to update transaction metadata"
-              );
-            }
-          } catch (error) {
-            retryCount++;
-            if (retryCount < maxRetries) {
-              const delay = 1000 * Math.pow(2, retryCount - 1); // Exponential backoff
-              console.warn(
-                `Metadata update attempt ${retryCount} failed, retrying in ${delay}ms:`,
-                error
-              );
-              await new Promise((resolve) => setTimeout(resolve, delay));
-            } else {
-              console.error(
-                "Failed to update transaction metadata after all retries:",
-                error
-              );
-            }
-          }
-        }
-      }
+      //await algosdk.waitForConfirmation(algorandClients.algod, res.txid, 4);
+      // TODO: fix this
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Get reward names before clearing
       const rewardNames = Object.keys(claimableRewards)
@@ -1696,7 +1394,7 @@ const MarketsTable = () => {
 
       // Store the claimed and deposited amount (for success message)
       const claimedData = {
-        formatted: formattedTotalThisBatch,
+        formatted: formattedTotalClaimable,
         symbol: rewardSymbol,
         wasDeposited: true, // Mark that this was deposited directly
         rewardNames, // Store reward names for sharing
@@ -1705,7 +1403,7 @@ const MarketsTable = () => {
 
       toast({
         title: "Success!",
-        description: `Successfully claimed and deposited ${formattedTotalThisBatch} ${rewardSymbol} into the market`,
+        description: `Successfully claimed and deposited ${formattedTotalClaimable} ${rewardSymbol} into the market`,
       });
 
       // Clear claimable rewards - the useEffect will refresh them automatically
@@ -1787,7 +1485,8 @@ const MarketsTable = () => {
 
       if (!token) {
         console.error(
-          `Token ${asset} not found in network config${poolId ? ` with poolId ${poolId}` : ""
+          `Token ${asset} not found in network config${
+            poolId ? ` with poolId ${poolId}` : ""
           }`
         );
         return { balance: 0, balanceUSD: 0 };
@@ -1796,7 +1495,7 @@ const MarketsTable = () => {
       // Get the original token config to access tokenStandard
       // Use originalSymbol to look up the config, as asset might be a display symbol
       const originalSymbol =
-        "originalSymbol" in token ? (token as { originalSymbol?: string }).originalSymbol : asset;
+        "originalSymbol" in token ? (token as any).originalSymbol : asset;
       const tokenConfigRaw = getTokenConfig(currentNetwork, originalSymbol);
       if (!tokenConfigRaw) {
         console.error(
@@ -1809,8 +1508,8 @@ const MarketsTable = () => {
       // Compare poolIds as strings to ensure exact match
       const originalTokenConfig = Array.isArray(tokenConfigRaw)
         ? tokenConfigRaw.find(
-          (tc) => String(tc.poolId) === String(token.poolId)
-        ) || tokenConfigRaw[0]
+            (tc) => String(tc.poolId) === String(token.poolId)
+          ) || tokenConfigRaw[0]
         : tokenConfigRaw;
 
       if (!originalTokenConfig) {
@@ -1823,17 +1522,6 @@ const MarketsTable = () => {
       // Initialize ARC200Service with current clients
       const clients = await getSyncedClientsForReads();
       ARC200Service.initialize(clients);
-
-      // Debug: Log token config details
-      console.log("[MarketsTable] Token config for balance fetch:", {
-        asset,
-        network: currentNetwork,
-        tokenStandard: originalTokenConfig.tokenStandard,
-        underlyingContractId: token.underlyingContractId,
-        underlyingAssetId: token.underlyingAssetId,
-        poolId: token.poolId,
-        address: activeAccount.address,
-      });
 
       let balance = 0;
 
@@ -1866,25 +1554,15 @@ const MarketsTable = () => {
         }
       } else if (originalTokenConfig.tokenStandard === "network") {
         // For network tokens (like VOI), fetch native balance
-        console.log(`[MarketsTable] Entering network token balance fetch for ${asset}`, {
-          tokenStandard: originalTokenConfig.tokenStandard,
-          address: activeAccount.address,
-          network: currentNetwork,
-        });
         console.log(`Fetching network token balance for ${asset}`);
         try {
           const clients = await getSyncedClientsForReads();
           const accountInfo = await clients.algod
             .accountInformation(activeAccount.address)
             .do();
-          console.log(`[MarketsTable] accountInfo for ${asset}:`, accountInfo);
           // Convert from micro-units to units (divide by 1,000,000)
-          balance = Math.max(0, Number(accountInfo.amount) - Number(accountInfo.minBalance) - 1e6) / 1e6;
-          console.log(`[MarketsTable] Network token balance for ${asset}:`, {
-            rawAmount: accountInfo.amount,
-            balance,
-            minBalance: accountInfo.minBalance,
-          });
+          balance = Number(accountInfo.amount) / 1_000_000;
+          console.log(`Network token balance for ${asset}: ${balance}`);
         } catch (error) {
           console.error(
             `Error fetching network token balance for ${asset}:`,
@@ -1986,25 +1664,20 @@ const MarketsTable = () => {
   };
 
   const getAssetData = (asset: string, poolId?: string) => {
-    const poolIdStr = poolId != null && poolId !== "" ? String(poolId) : null;
-    let market: (typeof markets)[0] | undefined;
-
-    if (poolIdStr) {
-      // Exact match by asset + poolId (required for 2 WAD markets etc. – never use another market’s data)
-      market = markets.find(
-        (m) =>
-          m.asset === asset &&
-          (String(m.poolId) === poolIdStr ||
-            String((m as { marketInfo?: { poolId?: string } }).marketInfo?.poolId) === poolIdStr)
-      );
-      // When poolId was provided, do not fall back to a different market – wrong collateral factor etc.
-      if (!market) return null;
+    console.log({ asset, poolId, markets });
+    // Find matching markets - prefer poolId match if provided
+    let market;
+    if (poolId) {
+      // If poolId is provided, match by both asset and poolId
+      market = markets.find((m) => m.asset === asset && m.poolId === poolId);
     }
 
+    // If no poolId match or poolId not provided, find by asset
+    // For tokens with multiple markets, prefer the one with higher totalSupply (more active market)
     if (!market) {
-      // No poolId provided – find by asset only
       const matchingMarkets = markets.filter((m) => m.asset === asset);
       if (matchingMarkets.length > 1) {
+        // Multiple markets found - prefer the one with higher totalSupply
         market = matchingMarkets.reduce((prev, current) => {
           return (current.totalSupply || 0) > (prev.totalSupply || 0)
             ? current
@@ -2017,61 +1690,20 @@ const MarketsTable = () => {
 
     if (!market) return null;
 
-    // Safely resolve APY values - avoid NaN in deposit modal
-    const supplyAPY =
-      typeof market.supplyAPY === "number" && !Number.isNaN(market.supplyAPY)
-        ? market.supplyAPY
-        : (typeof market.apyCalculation?.apy === "number" &&
-          !Number.isNaN(market.apyCalculation?.apy))
-          ? market.apyCalculation.apy
-          : 0;
-    const borrowAPY =
-      typeof market.borrowAPY === "number" && !Number.isNaN(market.borrowAPY)
-        ? market.borrowAPY
-        : (typeof market.borrowApyCalculation?.apy === "number" &&
-          !Number.isNaN(market.borrowApyCalculation?.apy))
-          ? market.borrowApyCalculation.apy
-          : 0;
-
-    const marketInfo = (market as { marketInfo?: { borrowRate?: number; slope?: number; reserveFactor?: number } }).marketInfo;
-    const apyParameters =
-      marketInfo &&
-      typeof marketInfo.borrowRate === "number" &&
-      typeof marketInfo.slope === "number" &&
-      typeof marketInfo.reserveFactor === "number"
-        ? {
-            borrowRateBps: Math.round(marketInfo.borrowRate * 10000),
-            slopeBps: Math.round(marketInfo.slope * 10000),
-            reserveFactorBps: Math.round(marketInfo.reserveFactor * 10000),
-          }
-        : undefined;
-
-    const tokenConfigRaw = getTokenConfig(currentNetwork, asset);
-    const tokenConfig = Array.isArray(tokenConfigRaw)
-      ? poolIdStr
-        ? tokenConfigRaw.find((c: { poolId?: string }) => String(c.poolId) === poolIdStr) ?? tokenConfigRaw[0]
-        : tokenConfigRaw[0]
-      : tokenConfigRaw;
-    const decimals = (tokenConfig as { decimals?: number } | undefined)?.decimals ?? 8;
-
     return {
       icon: market.icon,
-      decimals,
       totalSupply: market.totalSupply,
       totalSupplyUSD: market.totalSupplyUSD,
-      supplyAPY,
+      supplyAPY: market.supplyAPY,
       totalBorrow: market.totalBorrow,
       totalBorrowUSD: market.totalBorrowUSD,
-      borrowAPY,
+      borrowAPY: market.borrowAPY,
       utilization: market.utilization,
       collateralFactor: market.collateralFactor,
-      liquidationThreshold: market.liquidationThreshold,
       liquidity: market.totalSupply - market.totalBorrow,
       liquidityUSD: market.totalSupplyUSD - market.totalBorrowUSD,
       reserveFactor: market.reserveFactor,
       apyCalculation: market.apyCalculation,
-      borrowApyCalculation: (market as { borrowApyCalculation?: { apy: number } }).borrowApyCalculation,
-      apyParameters,
       maxTotalDeposits: market.supplyCap,
       isSToken: market.isSToken,
     };
@@ -2080,64 +1712,6 @@ const MarketsTable = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-4">
       <div className="space-y-4">
-        {/* Network selector */}
-        {enabledNetworks.length > 0 && (
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 dark:bg-muted/20 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors w-fit">
-                  <img
-                    src={getNetworkLogoPath(currentNetwork)}
-                    alt=""
-                    className="h-5 w-5 rounded-full"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder.svg";
-                    }}
-                  />
-                  <span className="text-sm font-medium">
-                    {getNetworkConfig(currentNetwork).name}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Network
-                </div>
-                <DropdownMenuSeparator />
-                {enabledNetworks.map((networkId) => {
-                  const networkConfig = getNetworkConfig(networkId);
-                  const isCurrent = currentNetwork === networkId;
-                  return (
-                    <DropdownMenuItem
-                      key={networkId}
-                      onClick={() => switchNetwork(networkId)}
-                      className="cursor-pointer flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={getNetworkLogoPath(networkId)}
-                          alt=""
-                          className="h-5 w-5 rounded-full"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "/placeholder.svg";
-                          }}
-                        />
-                        <span className="text-sm">{networkConfig.name}</span>
-                      </div>
-                      {isCurrent && (
-                        <span className="w-2 h-2 rounded-full bg-green-500" />
-                      )}
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-
         {/* Hero Section */}
         <MarketsHeroSection />
 
@@ -2220,27 +1794,6 @@ const MarketsTable = () => {
                 )}
               </div>
             </div>
-            {/* Market filter: All / A / B */}
-            <Tabs
-              value={marketFilter}
-              onValueChange={(v) => {
-                setMarketFilter(v as MarketFilter);
-                setCurrentPage(1);
-              }}
-              className="w-full mt-4"
-            >
-              <TabsList className="grid w-full max-w-md grid-cols-3">
-                <TabsTrigger value="all" className="text-sm">
-                  All Markets
-                </TabsTrigger>
-                <TabsTrigger value="A" className="text-sm">
-                  A Markets
-                </TabsTrigger>
-                <TabsTrigger value="B" className="text-sm">
-                  B Markets
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
           </div>
           {/* Informational guidance - matches Liquidations Queue styles */}
           <section
@@ -2279,8 +1832,6 @@ const MarketsTable = () => {
           ) : (
             <MarketsTableContent
               markets={markets}
-              sortField={sortField}
-              sortOrder={sortOrder}
               onRowClick={handleRowClick}
               onInfoClick={handleInfoClick}
               onDepositClick={handleDepositClick}
@@ -2323,7 +1874,7 @@ const MarketsTable = () => {
             onDeposit={() => handleDepositClick(detailModal.asset!)}
             onWithdraw={() => handleWithdrawClick(detailModal.asset!)}
             onBorrow={() => handleBorrowClick(detailModal.asset!)}
-            onRepay={() => { }}
+            onRepay={() => {}}
           />
         )}
 
@@ -2343,15 +1894,10 @@ const MarketsTable = () => {
                 walletBalances[depositModal.asset]?.balanceUSD || 0
               }
               userDepositBalance={userDepositBalance}
-              onTransactionSuccess={async () => {
+              onTransactionSuccess={() => {
                 // Refresh wallet balance immediately after successful transaction
                 if (depositModal.asset) {
                   refreshWalletBalance(depositModal.asset);
-                  // Wait a bit for backend to process metadata, then refresh market data
-                  // This ensures the blockchain state and API are in sync
-                  setTimeout(() => {
-                    loadMarketDataWithBypass(depositModal.asset.toLowerCase());
-                  }, 3000);
                 }
               }}
             />
@@ -2360,29 +1906,22 @@ const MarketsTable = () => {
         {/* Withdraw Modal */}
         {withdrawModal.isOpen &&
           withdrawModal.asset &&
-          (() => {
-            const assetData = getAssetData(withdrawModal.asset);
-            return assetData ? (
-              <WithdrawModal
-                isOpen={withdrawModal.isOpen}
-                onClose={handleCloseWithdrawModal}
-                tokenSymbol={withdrawModal.asset}
-                tokenIcon={assetData.icon}
-                tokenDecimals={assetData.decimals ?? 8}
-                currentlyDeposited={1000}
-                marketStats={{
-                  supplyAPY: assetData.supplyAPY,
-                  borrowAPY: assetData.borrowAPY,
-                  utilization: assetData.utilization,
-                  collateralFactor: assetData.collateralFactor,
-                  tokenPrice: assetData.totalSupply > 0 ? assetData.totalSupplyUSD / assetData.totalSupply : 1.0,
-                  totalDeposits: assetData.totalSupply,
-                  totalBorrows: assetData.totalBorrow,
-                  apyParameters: assetData.apyParameters,
-                }}
-              />
-            ) : null;
-          })()}
+          getAssetData(withdrawModal.asset) && (
+            <WithdrawModal
+              isOpen={withdrawModal.isOpen}
+              onClose={handleCloseWithdrawModal}
+              tokenSymbol={withdrawModal.asset}
+              tokenIcon={getAssetData(withdrawModal.asset).icon}
+              currentlyDeposited={1000}
+              marketStats={{
+                supplyAPY: getAssetData(withdrawModal.asset).supplyAPY,
+                utilization: getAssetData(withdrawModal.asset).utilization,
+                collateralFactor: getAssetData(withdrawModal.asset)
+                  .collateralFactor,
+                tokenPrice: 1.0,
+              }}
+            />
+          )}
 
         {/* Borrow Modal */}
         {borrowModal.isOpen &&
@@ -2470,23 +2009,16 @@ const MarketsTable = () => {
                       Available to Claim
                     </div>
                     <div className="text-3xl font-extrabold text-yellow-300 mb-2">
-                      {formattedTotalThisBatch || "0"} {rewardSymbol}
+                      {formattedTotalClaimable || "0"} {rewardSymbol}
                     </div>
-                    {hasMoreRewardsToClaim && (
-                      <p className="text-xs text-white/50 mt-1">
-                        Showing first {MAX_CLAIMS_PER_TX} of{" "}
-                        {Object.keys(claimableRewards).length} rewards. Claim
-                        again for the rest.
-                      </p>
-                    )}
                   </div>
-                  {claimableRewardsThisBatch.length > 0 && (
+                  {Object.keys(claimableRewards).length > 0 && (
                     <div className="mb-3 px-1">
                       <div className="text-sm text-white/50 mb-2">
                         Breakdown:
                       </div>
                       <div className="space-y-1">
-                        {claimableRewardsThisBatch.map(
+                        {Object.entries(claimableRewards).map(
                           ([rewardId, reward]) => {
                             const rewardInfo = rewards.find(
                               (r) => r.id.toString() === rewardId
@@ -2515,13 +2047,16 @@ const MarketsTable = () => {
                       className="w-full py-3 rounded-lg bg-yellow-400 text-slate-900 font-bold text-lg hover:bg-yellow-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleClaimVoi}
                       disabled={
-                        totalClaimableThisBatch === 0 || isClaiming
+                        !hasClaimableRewards ||
+                        totalClaimableAmount === 0 ||
+                        isClaiming
                       }
                     >
                       {isClaiming
                         ? "Claiming..."
-                        : `Claim ${formattedTotalThisBatch || "0"
-                        } ${rewardSymbol}`}
+                        : `Claim ${
+                            formattedTotalClaimable || "0"
+                          } ${rewardSymbol}`}
                     </button>
                     {voiToken &&
                       (() => {
@@ -2546,7 +2081,7 @@ const MarketsTable = () => {
                           const matchingMarket = markets.find(
                             (m) =>
                               m.asset?.toLowerCase() ===
-                              voiToken.symbol.toLowerCase() &&
+                                voiToken.symbol.toLowerCase() &&
                               (!voiToken.poolId || m.poolId === voiToken.poolId)
                           );
                           if (matchingMarket) {
@@ -2593,12 +2128,12 @@ const MarketsTable = () => {
                           voiAssetData?.apyCalculation?.apy ||
                           voiAssetData?.supplyAPY ||
                           0;
-                        const formattedAPY = formatPercent(apy / 100, { maximumFractionDigits: 2 });
+                        const formattedAPY = apy.toFixed(2);
                         const depositButtonText = isClaiming
                           ? "Processing..."
                           : apy === 0
-                            ? "Direct Deposit into Market"
-                            : `Deposit & Earn ${formattedAPY} APY`;
+                          ? "Direct Deposit into Market"
+                          : `Deposit & Earn ${formattedAPY}% APY`;
 
                         return (
                           <>
@@ -2611,7 +2146,9 @@ const MarketsTable = () => {
                               className="w-full py-3 rounded-lg border-2 border-green-600 hover:border-green-700 text-green-600 hover:text-green-700 font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20"
                               onClick={handleDirectDepositToMarket}
                               disabled={
-                                totalClaimableThisBatch === 0 || isClaiming
+                                !hasClaimableRewards ||
+                                totalClaimableAmount === 0 ||
+                                isClaiming
                               }
                             >
                               {depositButtonText}
@@ -2731,8 +2268,8 @@ const MarketsTable = () => {
                           const networkMentions = isCurrentNetworkVOI()
                             ? " @Voi_Net"
                             : isCurrentNetworkAlgorand()
-                              ? " @AlgoFoundation"
-                              : "";
+                            ? " @AlgoFoundation"
+                            : "";
 
                           // Get wallet name
                           const rawWalletName =
@@ -2754,16 +2291,22 @@ const MarketsTable = () => {
                           }
 
                           const shareText = claimedAmount?.wasDeposited
-                            ? `Just claimed and deposited ${claimedAmount?.formatted ||
-                            formattedTotalClaimable
-                            } ${claimedAmount?.symbol || rewardSymbol
-                            } rewards on @dork_fi${networkMentions}${walletName ? ` using ${walletName}` : ""
-                            }! 🎉`
-                            : `Just claimed ${claimedAmount?.formatted ||
-                            formattedTotalClaimable
-                            } ${claimedAmount?.symbol || rewardSymbol
-                            } rewards on @dork_fi${networkMentions}${walletName ? ` using ${walletName}` : ""
-                            }! 🎉`;
+                            ? `Just claimed and deposited ${
+                                claimedAmount?.formatted ||
+                                formattedTotalClaimable
+                              } ${
+                                claimedAmount?.symbol || rewardSymbol
+                              } rewards for PreFi incentives on @dork_fi${networkMentions}${
+                                walletName ? ` using ${walletName}` : ""
+                              }! 🎉`
+                            : `Just claimed ${
+                                claimedAmount?.formatted ||
+                                formattedTotalClaimable
+                              } ${
+                                claimedAmount?.symbol || rewardSymbol
+                              } rewards for PreFi incentives on @dork_fi${networkMentions}${
+                                walletName ? ` using ${walletName}` : ""
+                              }! 🎉`;
 
                           return (
                             <a
