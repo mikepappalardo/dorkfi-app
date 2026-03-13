@@ -20,6 +20,8 @@ interface PortfolioTableMobileCardProps {
   liquidationPrice?: number;
   network?: string;
   poolId?: string;
+  /** A or B market label for badge on icon */
+  marketLabel?: string | null;
   onDepositClick?: () => void;
   onWithdrawClick?: () => void;
   onRefreshClick?: () => void;
@@ -42,6 +44,7 @@ const PortfolioTableMobileCard = ({
   liquidationPrice,
   network,
   poolId,
+  marketLabel,
   onDepositClick,
   onWithdrawClick,
   onRefreshClick,
@@ -68,11 +71,18 @@ const PortfolioTableMobileCard = ({
         {/* Header: Asset Icon above Ticker + Actions */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-center gap-1">
-            <img
-              src={icon}
-              alt={asset}
-              className="w-12 h-12 rounded-full flex-shrink-0"
-            />
+            <div className="relative flex-shrink-0">
+              <img
+                src={icon}
+                alt={asset}
+                className="w-12 h-12 rounded-full"
+              />
+              {marketLabel && (marketLabel === "A" || marketLabel === "B") && (
+                <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${marketLabel === "A" ? "bg-blue-500 dark:bg-blue-600" : "bg-purple-500 dark:bg-purple-600"} border-2 border-white dark:border-slate-800 flex items-center justify-center`}>
+                  <span className="text-xs font-bold text-white">{marketLabel}</span>
+                </div>
+              )}
+            </div>
             <div className="text-center">
               <div className="font-semibold text-base text-slate-800 dark:text-white">
                 {asset}

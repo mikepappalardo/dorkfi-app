@@ -5793,6 +5793,12 @@ const Portfolio = () => {
                         return (
                           <>
                             {displayDeposits.map((deposit) => {
+                              const depositNetworkForMarket =
+                                (deposit as ItemWithNetwork).network || currentNetwork;
+                              const depositMarketLabel = getMarketLabel(
+                                depositNetworkForMarket,
+                                deposit.poolId
+                              );
                               const market = marketData.find(
                                 (m) =>
                                   m.symbol === deposit.asset &&
@@ -5864,6 +5870,7 @@ const Portfolio = () => {
                                   liquidationFactor={marketLiquidationThreshold}
                                   network={(deposit as ItemWithNetwork).network}
                                   poolId={deposit.poolId}
+                                  marketLabel={depositMarketLabel}
                                   onDepositClick={
                                     !isViewOnly && !market?.isPaused
                                       ? () =>
@@ -6790,11 +6797,18 @@ const Portfolio = () => {
                                 >
                                   <TableCell className="min-w-0">
                                     <div className="flex flex-col items-center gap-1 min-w-0">
-                                      <img
-                                        src={deposit.icon}
-                                        alt={deposit.asset}
-                                        className="w-8 h-8 rounded-full shrink-0"
-                                      />
+                                      <div className="relative flex-shrink-0">
+                                        <img
+                                          src={deposit.icon}
+                                          alt={deposit.asset}
+                                          className="w-8 h-8 rounded-full"
+                                        />
+                                        {depositMarketLabel && (depositMarketLabel === "A" || depositMarketLabel === "B") && (
+                                          <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${depositMarketLabel === "A" ? "bg-blue-500 dark:bg-blue-600" : "bg-purple-500 dark:bg-purple-600"} border-2 border-white dark:border-slate-800 flex items-center justify-center`}>
+                                            <span className="text-xs font-bold text-white">{depositMarketLabel}</span>
+                                          </div>
+                                        )}
+                                      </div>
                                       <span className="font-medium truncate text-center">
                                         {deposit.asset}
                                       </span>
@@ -7951,6 +7965,7 @@ const Portfolio = () => {
                                   liquidationPrice={liquidationPrice}
                                   network={(borrow as ItemWithNetwork).network}
                                   poolId={borrow.poolId}
+                                  marketLabel={borrowMarketLabel}
                                   onDepositClick={
                                     !isViewOnly && !market?.isPaused
                                       ? () =>
@@ -8464,11 +8479,18 @@ const Portfolio = () => {
                                 >
                                   <TableCell>
                                     <div className="flex items-center gap-2">
-                                      <img
-                                        src={borrow.icon}
-                                        alt={borrow.asset}
-                                        className="w-6 h-6 rounded-full"
-                                      />
+                                      <div className="relative flex-shrink-0">
+                                        <img
+                                          src={borrow.icon}
+                                          alt={borrow.asset}
+                                          className="w-6 h-6 rounded-full"
+                                        />
+                                        {borrowMarketLabel && (borrowMarketLabel === "A" || borrowMarketLabel === "B") && (
+                                          <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${borrowMarketLabel === "A" ? "bg-blue-500 dark:bg-blue-600" : "bg-purple-500 dark:bg-purple-600"} border-2 border-white dark:border-slate-800 flex items-center justify-center`}>
+                                            <span className="text-[10px] font-bold text-white">{borrowMarketLabel}</span>
+                                          </div>
+                                        )}
+                                      </div>
                                       <span className="font-medium">
                                         {borrow.asset}
                                       </span>
@@ -9192,6 +9214,10 @@ const Portfolio = () => {
                               const hasDeposits =
                                 (item.earnedInterest || 0) > 0;
                               const hasBorrows = (item.owedInterest || 0) > 0;
+                              const itemMarketLabel = getMarketLabel(
+                                (item as ItemWithNetwork).network || currentNetwork,
+                                item.poolId
+                              );
 
                               return (
                                 <TableRow
@@ -9210,11 +9236,18 @@ const Portfolio = () => {
                                 >
                                   <TableCell>
                                     <div className="flex items-center gap-2">
-                                      <img
-                                        src={item.icon}
-                                        alt={item.asset}
-                                        className="w-6 h-6 rounded-full"
-                                      />
+                                      <div className="relative flex-shrink-0">
+                                        <img
+                                          src={item.icon}
+                                          alt={item.asset}
+                                          className="w-6 h-6 rounded-full"
+                                        />
+                                        {itemMarketLabel && (itemMarketLabel === "A" || itemMarketLabel === "B") && (
+                                          <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${itemMarketLabel === "A" ? "bg-blue-500 dark:bg-blue-600" : "bg-purple-500 dark:bg-purple-600"} border-2 border-white dark:border-slate-800 flex items-center justify-center`}>
+                                            <span className="text-[10px] font-bold text-white">{itemMarketLabel}</span>
+                                          </div>
+                                        )}
+                                      </div>
                                       <span className="font-medium">
                                         {item.asset}
                                       </span>
@@ -9489,17 +9522,29 @@ const Portfolio = () => {
                   Risky Borrow Positions
                 </div>
                 <div className="space-y-2">
-                  {riskyBorrows.map((borrow, index) => (
+                  {riskyBorrows.map((borrow, index) => {
+                    const riskyBorrowMarketLabel = getMarketLabel(
+                      (borrow as ItemWithNetwork).network || currentNetwork,
+                      borrow.poolId
+                    );
+                    return (
                     <div
                       key={index}
                       className="flex items-center justify-between p-3 rounded-lg bg-red-500/10 border border-red-500/20"
                     >
                       <div className="flex items-center gap-3">
-                        <img
-                          src={borrow.icon}
-                          alt={borrow.asset}
-                          className="w-6 h-6 rounded-full"
-                        />
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={borrow.icon}
+                            alt={borrow.asset}
+                            className="w-6 h-6 rounded-full"
+                          />
+                          {riskyBorrowMarketLabel && (riskyBorrowMarketLabel === "A" || riskyBorrowMarketLabel === "B") && (
+                            <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${riskyBorrowMarketLabel === "A" ? "bg-blue-500 dark:bg-blue-600" : "bg-purple-500 dark:bg-purple-600"} border-2 border-white dark:border-slate-800 flex items-center justify-center`}>
+                              <span className="text-[10px] font-bold text-white">{riskyBorrowMarketLabel}</span>
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <div className="text-sm font-medium text-red-400">
                             {borrow.asset}
@@ -9519,7 +9564,8 @@ const Portfolio = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
